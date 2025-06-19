@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake;
+}
+
+body,
+#main {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* #main {
+  height: 100%;
+} */
