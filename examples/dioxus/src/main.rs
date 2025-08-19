@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use theme_change::theme_toggle;
+use wasm_theme::{theme_buttons, theme_radio, theme_select, theme_toggle};
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const HEADER_SVG: Asset = asset!("/assets/header.svg");
@@ -9,17 +9,13 @@ fn main() {
   dioxus::launch(App);
 }
 
-const SCRIPT: &str = r#"if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", doSomething); } else { return "Hello World"(); }"#;
-
 #[component]
 fn App() -> Element {
   use_effect(move || {
     theme_toggle();
-    // spawn(async {
-    //   let result = document::eval(SCRIPT).await;
-    //   println!("{:?}", result);
-    //   theme_toggle();
-    // });
+    theme_radio();
+    theme_buttons();
+    theme_select();
   });
 
   rsx! {
@@ -39,8 +35,8 @@ pub fn Hero() -> Element {
           label { class: "toggle toggle-xl ",
             input {
               r#type: "checkbox",
+              name: "theme-toggle",
               value: "dark",
-              "theme-toggle": "dark",
             }
             svg {
               "aria-label": "enabled",
@@ -61,10 +57,9 @@ pub fn Hero() -> Element {
           }
           label { class: "swap swap-rotate",
             input {
-              id: "theme-toggle",
               r#type: "checkbox",
+              name: "theme-toggle",
               value: "dark",
-              "theme-toggle": "dark",
             }
             svg {
               class: "swap-off h-8 w-8 fill-current",
@@ -86,6 +81,7 @@ pub fn Hero() -> Element {
               input {
                 r#type: "radio",
                 name: "theme-radios",
+                "theme-radios": "default",
                 class: "radio radio-sm",
                 value: "default",
               }
@@ -104,6 +100,7 @@ pub fn Hero() -> Element {
               input {
                 r#type: "radio",
                 name: "theme-radios",
+                "theme-radios": "dark",
                 class: "radio radio-sm",
                 value: "dark",
               }
@@ -121,16 +118,31 @@ pub fn Hero() -> Element {
           }
         }
         Card { title: "Buttons",
-          button { class: "btn btn-primary", "Light" }
-          button { class: "btn btn-secondary", "Dark" }
-          button { class: "btn btn-accent", "Cupcake" }
+          button {
+            class: "btn btn-primary",
+            name: "theme-button",
+            value: "light",
+            "Light"
+          }
+          button {
+            class: "btn btn-secondary",
+            name: "theme-button",
+            value: "dark",
+            "Dark"
+          }
+          button {
+            class: "btn btn-accent",
+            name: "theme-button",
+            value: "cupcake",
+            "Cupcake"
+          }
         }
         Card { title: "Select",
-          select { class: "select",
-            option { "Default" }
-            option { "Light" }
-            option { "Dark" }
-            option { "Cupcake" }
+          select { class: "select", name: "theme-select",
+            option { value: "default", "Default" }
+            option { value: "light", "Light" }
+            option { value: "dark", "Dark" }
+            option { value: "cupcake", "Cupcake" }
           }
         }
       }
@@ -144,7 +156,6 @@ pub fn Card(title: String, children: Element) -> Element {
     div { class: "card bg-base-300 text-base-content w-full sm:w-1/5",
       div { class: "card-body items-center text-center",
         h2 { class: "card-title", "{title}" }
-        p { "We are using cookies for no reason." }
         div { class: "card-actions", {&children} }
       }
     }

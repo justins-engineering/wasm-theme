@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "dioxus"
+title = "wasm-theme"
 
 # include `assets` in web platform
 [web.resource]

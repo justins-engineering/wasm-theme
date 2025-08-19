@@ -1,14 +1,12 @@
 [package]
-name = "dioxus"
+name = "dioxus-example"
 version = "0.1.0"
 authors = ["justin <code@jes.contact>"]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 dioxus = { version = "0.6.0", features = [] }
-theme-change = { path = "../../" }
+wasm-theme = { path = "../../" }
 
 [features]
 default = ["web"]
