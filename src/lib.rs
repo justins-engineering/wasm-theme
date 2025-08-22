@@ -1,9 +1,46 @@
 #![forbid(unsafe_code)]
-
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use web_sys::{Document, Window};
 
-fn toggle_callback() -> Closure<dyn FnMut(web_sys::Event)> {
+fn prefers_color_scheme(window: Window) -> String {
+  let document = window.document().expect("Could not access window document");
+  let storage = window
+    .local_storage()
+    .unwrap_throw()
+    .expect("Can't access local storage");
+  let theme = storage.get_item("theme").unwrap_or(None);
+
+  let document_element = document
+    .document_element()
+    .expect("Expecting an element on document");
+
+  let mut data_theme = "default";
+
+  if let Some(theme) = theme.as_deref() {
+    data_theme = theme;
+  } else if let Ok(Some(scheme)) = window.match_media("(prefers-color-scheme: dark)") {
+    if scheme.matches() {
+      data_theme = "dark";
+      storage.set_item("theme", "dark").unwrap_throw();
+    }
+  } else if let Ok(Some(scheme)) = window.match_media("(prefers-color-scheme: light)") {
+    if scheme.matches() {
+      data_theme = "light";
+      storage.set_item("theme", "light").unwrap_throw();
+    }
+  } else {
+    storage.set_item("theme", "default").unwrap_throw();
+  }
+
+  document_element
+    .set_attribute("data-theme", data_theme)
+    .expect("Failed to set data-theme");
+
+  data_theme.to_string()
+}
+
+fn toggle_callback(window: Window, document: Document) -> Closure<dyn FnMut(web_sys::Event)> {
   Closure::wrap(Box::new(move |e: web_sys::Event| {
     let input = e
       .current_target()
@@ -11,11 +48,6 @@ fn toggle_callback() -> Closure<dyn FnMut(web_sys::Event)> {
       .dyn_into::<web_sys::HtmlInputElement>()
       .unwrap_throw();
 
-    // let window = window!();
-    // let local_storage = storage!(window);
-    // let document_element = document_element!(document!(window));
-    let window = web_sys::window().expect("Could not access window");
-    let document = window.document().expect("Could not access window document");
     let storage = window
       .local_storage()
       .unwrap_throw()
@@ -24,16 +56,33 @@ fn toggle_callback() -> Closure<dyn FnMut(web_sys::Event)> {
       .document_element()
       .expect("Expecting an element on document");
 
+    let value = input.value();
+    let mut itr = value.rsplitn(2, ',');
+    let checked_value = itr.next();
+    let unchecked_value = itr.next();
+
     if input.checked() {
+      if let Some(checked) = checked_value {
+        document_element
+          .set_attribute("data-theme", checked)
+          .unwrap_throw();
+        storage.set_item("theme", checked).unwrap_throw();
+      } else {
+        document_element
+          .set_attribute("data-theme", &value)
+          .unwrap_throw();
+        storage.set_item("theme", &value).unwrap_throw();
+      }
+    } else if let Some(unchecked) = unchecked_value {
       document_element
-        .set_attribute("data-theme", &input.value())
+        .set_attribute("data-theme", unchecked)
         .unwrap_throw();
-      storage.set_item("theme", &input.value()).unwrap_throw();
+      storage.set_item("theme", unchecked).unwrap_throw();
     } else {
       document_element
-        .remove_attribute("data-theme")
+        .set_attribute("data-theme", "default")
         .unwrap_throw();
-      storage.remove_item("theme").unwrap_throw();
+      storage.set_item("theme", "default").unwrap_throw();
     }
   }) as Box<dyn FnMut(_)>)
 }
@@ -46,60 +95,42 @@ pub fn theme_toggle() {
     .query_selector_all("[name=theme-toggle]")
     .unwrap_throw();
   let entries: web_sys::js_sys::Iterator = check_boxes.values();
-  let storage = window
-    .local_storage()
-    .unwrap_throw()
-    .expect("Can't access local storage");
-  let document_element = document
-    .document_element()
-    .expect("Expecting an element on document");
-  let theme = storage.get_item("theme").unwrap_or(None);
-  let callback = toggle_callback();
+  let callback = toggle_callback(window.clone(), document);
+  let prefered = prefers_color_scheme(window);
 
-  if let Some(theme) = theme.as_deref() {
-    document_element
-      .set_attribute("data-theme", theme)
-      .expect("Failed to set data-theme");
+  for entry in entries {
+    let element = entry
+      .unwrap_throw()
+      .dyn_into::<web_sys::HtmlInputElement>()
+      .unwrap_throw();
 
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlInputElement>()
-        .unwrap_throw();
+    let value = element.value();
+    let mut itr = value.rsplitn(2, ',');
+    let checked_value = itr.next();
 
-      if element.value() == theme {
+    if let Some(checked) = checked_value {
+      if checked == prefered {
         element.set_checked(true);
       }
-
-      element
-        .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
+    } else if element.value() == prefered {
+      element.set_checked(true);
     }
-  } else {
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlInputElement>()
-        .unwrap_throw();
 
-      element
-        .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
-    }
+    element
+      .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
+      .unwrap_throw()
   }
 
   callback.forget();
 }
 
-fn radio_callback() -> Closure<dyn FnMut(web_sys::Event)> {
+fn radio_callback(window: Window, document: Document) -> Closure<dyn FnMut(web_sys::Event)> {
   Closure::wrap(Box::new(move |e: web_sys::Event| {
     let input = e
       .current_target()
       .unwrap_throw()
       .dyn_into::<web_sys::HtmlInputElement>()
       .unwrap_throw();
-    let window = web_sys::window().expect("Could not access window");
-    let document = window.document().expect("Could not access window document");
     let storage = window
       .local_storage()
       .unwrap_throw()
@@ -108,17 +139,10 @@ fn radio_callback() -> Closure<dyn FnMut(web_sys::Event)> {
       .document_element()
       .expect("Expecting an element on document");
 
-    if input.checked() {
-      document_element
-        .set_attribute("data-theme", &input.value())
-        .unwrap_throw();
-      storage.set_item("theme", &input.value()).unwrap_throw();
-    } else {
-      document_element
-        .remove_attribute("data-theme")
-        .unwrap_throw();
-      storage.remove_item("theme").unwrap_throw();
-    }
+    document_element
+      .set_attribute("data-theme", &input.value())
+      .unwrap_throw();
+    storage.set_item("theme", &input.value()).unwrap_throw();
   }) as Box<dyn FnMut(_)>)
 }
 
@@ -130,60 +154,34 @@ pub fn theme_radio() {
     .query_selector_all("[name=theme-radios]")
     .unwrap_throw();
   let entries: web_sys::js_sys::Iterator = radios.values();
-  let storage = window
-    .local_storage()
-    .unwrap_throw()
-    .expect("Can't access local storage");
-  let document_element = document
-    .document_element()
-    .expect("Expecting an element on document");
-  let theme = storage.get_item("theme").unwrap_or(None);
-  let callback = radio_callback();
+  let callback = radio_callback(window.clone(), document);
+  let prefered = prefers_color_scheme(window);
 
-  if let Some(theme) = theme.as_deref() {
-    document_element
-      .set_attribute("data-theme", theme)
-      .expect("Failed to set data-theme");
+  for entry in entries {
+    let element = entry
+      .unwrap_throw()
+      .dyn_into::<web_sys::HtmlInputElement>()
+      .unwrap_throw();
 
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlInputElement>()
-        .unwrap_throw();
-
-      if element.value() == theme {
-        element.set_checked(true);
-      }
-
-      element
-        .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
+    if element.value() == prefered {
+      element.set_checked(true);
     }
-  } else {
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlInputElement>()
-        .unwrap_throw();
 
-      element
-        .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
-    }
+    element
+      .add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())
+      .unwrap_throw()
   }
 
   callback.forget();
 }
 
-fn button_callback() -> Closure<dyn FnMut(web_sys::Event)> {
+fn button_callback(window: Window, document: Document) -> Closure<dyn FnMut(web_sys::Event)> {
   Closure::wrap(Box::new(move |e: web_sys::Event| {
     let button = e
       .current_target()
       .unwrap_throw()
       .dyn_into::<web_sys::HtmlButtonElement>()
       .unwrap_throw();
-    let window = web_sys::window().expect("Could not access window");
-    let document = window.document().expect("Could not access window document");
     let storage = window
       .local_storage()
       .unwrap_throw()
@@ -203,25 +201,12 @@ fn button_callback() -> Closure<dyn FnMut(web_sys::Event)> {
 pub fn theme_buttons() {
   let window = web_sys::window().expect("Could not access window");
   let document = window.document().expect("Could not access window document");
-  let radios = document
+  let buttons = document
     .query_selector_all("[name=theme-button]")
     .unwrap_throw();
-  let entries: web_sys::js_sys::Iterator = radios.values();
-  let storage = window
-    .local_storage()
-    .unwrap_throw()
-    .expect("Can't access local storage");
-  let document_element = document
-    .document_element()
-    .expect("Expecting an element on document");
-  let theme = storage.get_item("theme").unwrap_or(None);
-  let callback = button_callback();
-
-  if let Some(theme) = theme.as_deref() {
-    document_element
-      .set_attribute("data-theme", theme)
-      .expect("Failed to set data-theme");
-  }
+  let entries: web_sys::js_sys::Iterator = buttons.values();
+  let callback = button_callback(window.clone(), document);
+  let _prefered = prefers_color_scheme(window);
 
   for entry in entries {
     let element = entry
@@ -237,15 +222,13 @@ pub fn theme_buttons() {
   callback.forget();
 }
 
-fn select_callback() -> Closure<dyn FnMut(web_sys::Event)> {
+fn select_callback(window: Window, document: Document) -> Closure<dyn FnMut(web_sys::Event)> {
   Closure::wrap(Box::new(move |e: web_sys::Event| {
     let select = e
       .current_target()
       .unwrap_throw()
       .dyn_into::<web_sys::HtmlSelectElement>()
       .unwrap_throw();
-    let window = web_sys::window().expect("Could not access window");
-    let document = window.document().expect("Could not access window document");
     let storage = window
       .local_storage()
       .unwrap_throw()
@@ -269,56 +252,21 @@ pub fn theme_select() {
     .query_selector_all("[name=theme-select]")
     .unwrap_throw();
   let entries: web_sys::js_sys::Iterator = radios.values();
-  let storage = window
-    .local_storage()
-    .unwrap_throw()
-    .expect("Can't access local storage");
-  let document_element = document
-    .document_element()
-    .expect("Expecting an element on document");
-  let theme = storage.get_item("theme").unwrap_or(None);
-  let callback = select_callback();
+  let callback = select_callback(window.clone(), document);
+  let prefered = prefers_color_scheme(window);
 
-  if let Some(theme) = theme.as_deref() {
-    document_element
-      .set_attribute("data-theme", theme)
-      .expect("Failed to set data-theme");
+  for entry in entries {
+    let element = entry
+      .unwrap_throw()
+      .dyn_into::<web_sys::HtmlSelectElement>()
+      .unwrap_throw();
 
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlSelectElement>()
-        .unwrap_throw();
+    element.set_value(&prefered);
 
-      element.set_value(theme);
-
-      element
-        .add_event_listener_with_callback("change", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
-    }
-  } else {
-    for entry in entries {
-      let element = entry
-        .unwrap_throw()
-        .dyn_into::<web_sys::HtmlSelectElement>()
-        .unwrap_throw();
-
-      element
-        .add_event_listener_with_callback("change", callback.as_ref().unchecked_ref())
-        .unwrap_throw()
-    }
+    element
+      .add_event_listener_with_callback("change", callback.as_ref().unchecked_ref())
+      .unwrap_throw()
   }
 
   callback.forget();
 }
-
-// #[cfg(test)]
-// mod tests {
-//   use super::*;
-
-//   #[test]
-//   fn it_works() {
-//     let result = add(2, 2);
-//     assert_eq!(result, 4);
-//   }
-// }

@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 rust-version = "1.87.0"
-description = "Change CSS theme with toggle, buttons or select using CSS custom properties and localStorage."
+description = "Change the data-theme CSS attribute on the html element with checkbox/toggle, radio-buttons, buttons, and/or select in WASM. The theme variable is saved in local storage. Compatible with tailwindcss and daisyUI."
 license = "MIT"
-keywords = ["dioxus", "leptos", "theme", "wasm", "web-sys", "yew"]
+keywords = ["dioxus", "leptos", "theme", "wasm", "web-sys", "yew", "tailwindcss", "daisyui"]
 categories = ["wasm", "web-programming"]
 repository = "https://github.com/justins-engineering/wasm-theme"
 authors = ["JES <justin@jes.contact>"]
@@ -26,6 +26,7 @@ features = [
   "HtmlElement",
   "HtmlInputElement",
   "HtmlSelectElement",
+  "MediaQueryList",
   "Node",
   "NodeList",
 ]

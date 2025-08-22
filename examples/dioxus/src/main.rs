@@ -36,7 +36,7 @@ pub fn Hero() -> Element {
             input {
               r#type: "checkbox",
               name: "theme-toggle",
-              value: "dark",
+              value: "light,dark",
             }
             svg {
               "aria-label": "enabled",
@@ -81,7 +81,6 @@ pub fn Hero() -> Element {
               input {
                 r#type: "radio",
                 name: "theme-radios",
-                "theme-radios": "default",
                 class: "radio radio-sm",
                 value: "default",
               }
@@ -100,7 +99,6 @@ pub fn Hero() -> Element {
               input {
                 r#type: "radio",
                 name: "theme-radios",
-                "theme-radios": "dark",
                 class: "radio radio-sm",
                 value: "dark",
               }
