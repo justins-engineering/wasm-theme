@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Fixed Changelog links
+
 ## [0.1.1] - 2026-02-09
 
 ### Added
@@ -25,5 +27,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - rust-version lock in Cargo.toml
 
-[unreleased]: https://github.com/justins-engineering/kratos-client-rust/compare/v0.1.1...master
-[0.1.1]: https://github.com/justins-engineering/kratos-client-rust/compare/v0.1.0...v0.1.1
+[unreleased]: https://github.com/justins-engineering/wasm-theme/compare/v0.1.1...main
+[0.1.1]: https://github.com/justins-engineering/wasm-theme/compare/v0.1.0...v0.1.1
