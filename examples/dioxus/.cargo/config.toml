@@ -1,5 +1,6 @@
 [build]
 target = "wasm32-unknown-unknown"
+rustflags = ["-Cdebuginfo=0", "-Cstrip=symbols"]
 
 [profile.release]
 opt-level = "z"
