@@ -375,7 +375,7 @@ checksum = "c31d56021e873866c968588ed85ccdf56db5c426e44afdb4618c39895104b920"
 
 [[package]]
 name = "wasm-theme"
-version = "0.1.1"
+version = "1.0.0"
 dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-test",

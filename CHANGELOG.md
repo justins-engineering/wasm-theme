@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-23
+
 - Fixed Changelog links
 
 ### Fixed
@@ -62,5 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - rust-version lock in Cargo.toml
 
-[unreleased]: https://github.com/justins-engineering/wasm-theme/compare/v0.1.1...main
+[unreleased]: https://github.com/justins-engineering/wasm-theme/compare/v1.0.0...main
+[1.0.0]: https://github.com/justins-engineering/wasm-theme/compare/v0.1.1...v1.0.0
 [0.1.1]: https://github.com/justins-engineering/wasm-theme/compare/v0.1.0...v0.1.1
