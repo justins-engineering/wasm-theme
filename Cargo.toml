@@ -25,16 +25,29 @@ wasm-bindgen = "0.2"
 [dependencies.web-sys]
 version = "0.3"
 features = [
+  "console",
   "Document",
   "Element",
   "Event",
   "Window",
   "Storage",
   "HtmlButtonElement",
-  "HtmlElement",
   "HtmlInputElement",
   "HtmlSelectElement",
   "MediaQueryList",
-  "Node",
   "NodeList",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+# Only needed to build DOM fixtures in tests (`tests`/`browser_tests`
+# below) — kept out of `[dependencies.web-sys]` so consumers of this crate
+# don't pull in bindings the library itself never calls.
+[dev-dependencies.web-sys]
+version = "0.3"
+features = [
+  "EventTarget",
+  "HtmlElement",
+  "Node",
 ]
