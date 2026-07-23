@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated `examples/dioxus`'s Dioxus dependency to 0.7.9, matching the
+  installed `dioxus-cli` — the mismatched-version `BundledAsset`/symbol
+  deserialization warnings seen on `dx build` (crate locked to 0.7.3
+  against a 0.7.9 CLI) are gone now that both are on the same release.
+- Updated `examples/dioxus`'s JS tooling (`tailwindcss`/`@tailwindcss/cli`
+  to 4.3.3, `daisyui` to 5.7.0) and regenerated `bun.lock` — it had drifted
+  out of sync with `package.json`'s already-bumped version ranges.
+- Refreshed `Cargo.lock` for both the main crate and the example; the main
+  crate's own dependency version requirements (`wasm-bindgen = "0.2"`,
+  `web-sys = "0.3"`, `wasm-bindgen-test = "0.3"`) already tracked their
+  true latest releases (0.2.126 / 0.3.103 / 0.3.76) with no manifest change
+  needed.
+
 ## [1.0.0] - 2026-07-23
 
 - Fixed Changelog links
